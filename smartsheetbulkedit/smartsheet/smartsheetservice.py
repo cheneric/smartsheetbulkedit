@@ -138,10 +138,13 @@ class SmartsheetService(object):
 			break
 
 	def expandAllRows(self, sheet, isExpanded=True):
-		for row in sheet.rows:
+		# operate only on rows referenced to be parent rows
+		parentRowNumbers = frozenset([row.parentRowNumber for row in sheet.rows if row.parentRowNumber])
+		for parentRowNumber in parentRowNumbers:
+			row = sheet[parentRowNumber]
 			if row.expanded != isExpanded:
 				row.expanded = isExpanded
-				row.save(cell=[])
+				row.save()
 
 	def expandAllRowsInAllSheets(self, workspace=None, isExpanded=True):
 		for sheetInfo in self.getSheetInfos(workspace):
