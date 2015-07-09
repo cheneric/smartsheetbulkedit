@@ -13,6 +13,23 @@ class SmartsheetService(object):
 		self.__smartsheetClient = SmartsheetClient(token, logger=logging.getLogger(SmartsheetClient.__name__))
 		self.__smartsheetClient.connect()
 
+	def updateCell(self, sheet, rowNumber, columnIndex=None, columnTitle=None, value=None):
+		if columnIndex is not None and columnTitle is not None:
+			raise SmartsheetBulkEditError('one but not both "columnIndex" and "columnTitle" must be specified')
+		elif columnTitle is not None:
+			columnIndex = sheet.getColumnsInfo().getColumnByTitle(columnTitle).index
+		elif columnIndex is None:
+			raise SmartsheetBulkEditError('either "columnIndex" or "columnTitle" must be specified')
+		row = sheet[rowNumber]
+		row[columnIndex] = value
+		row.getCellByIndex(columnIndex).save(propagate=False)
+
+	def updateCellInAllSheets(self, rowNumber, workspace=None, columnIndex=None, columnTitle=None, value=None):
+		for sheetInfo in self.getSheetInfos(workspace):
+			sheet = self.__getSheetIfInWorkspace(sheetInfo, workspace)
+			if sheet is not None:
+				self.updateCell(sheet, rowNumber, columnIndex=columnIndex, columnTitle=columnTitle, value=value)
+
 	def addColumn(self, sheet, title, index=None, type=None, options=None, symbol=None, isPrimary=None, systemColumnType=None, autoNumberFormat=None, width=None):
 		params = {}
 		if sheet is not None:
@@ -49,29 +66,6 @@ class SmartsheetService(object):
 					systemColumnType=systemColumnType, 
 					autoNumberFormat=autoNumberFormat, 
 					width=width)
-
-			# temp
-			break
-
-	def updateCell(self, sheet, rowNumber, columnIndex=None, columnTitle=None, value=None):
-		if columnIndex is not None and columnTitle is not None:
-			raise SmartsheetBulkEditError('one but not both "columnIndex" and "columnTitle" must be specified')
-		elif columnTitle is not None:
-			columnIndex = sheet.getColumnsInfo().getColumnByTitle(columnTitle).index
-		elif columnIndex is None:
-			raise SmartsheetBulkEditError('either "columnIndex" or "columnTitle" must be specified')
-		row = sheet[rowNumber]
-		row[columnIndex] = value
-		row.getCellByIndex(columnIndex).save(propagate=False)
-
-	def updateCellInAllSheets(self, rowNumber, workspace=None, columnIndex=None, columnTitle=None, value=None):
-		for sheetInfo in self.getSheetInfos(workspace):
-			sheet = self.__getSheetIfInWorkspace(sheetInfo, workspace)
-			if sheet is not None:
-				self.updateCell(sheet, rowNumber, columnIndex=columnIndex, columnTitle=columnTitle, value=value)
-
-			# temp
-			break
 
 	def updateColumn(self, sheet, oldTitle, newTitle=None, index=None, type=None, options=None, symbol=None, systemColumnType=None, autoNumberFormat=None, width=None, format=None):
 		column = sheet.getColumnsInfo().getColumnByTitle(oldTitle)
@@ -112,30 +106,26 @@ class SmartsheetService(object):
 					width=width, 
 					format=format)
 
-			# temp
-			break
-
 	def addRow(self, sheet, rowDictionary, rowNumber=None):
 		row = sheet.makeRow(**rowDictionary)
 		if rowNumber is None:
 			# add as last row
 			sheet.addRow(row)
-		elif rowNumber == 0:
+		elif rowNumber in (0, 1):
 			# add as first row
 			sheet.addRow(row, position=RowPositionProperties.Top)
 		else:
-			# new row is inserted below sibling, so get the row ID of the sibling above
-			siblingId = sheet.getRowByRowNumber(rowNumber - 1)
-			sheet.addRow(row, siblingId=siblingId)
+			# new row is inserted below sibling, so the sibling above will be:
+			# if rowNumber < 0, the row currently at the desired row number
+			# if rowNumber > 1, the row 1 above the desired row number
+			siblingAboveRowId = sheet.getRowByRowNumber(rowNumber if rowNumber < 0 else rowNumber - 1).id
+			sheet.addRow(row, siblingId=siblingAboveRowId)
 
 	def addRowInAllSheets(self, rowDictionary, workspace=None, rowNumber=None):
 		for sheetInfo in self.getSheetInfos(workspace):
 			sheet = self.__getSheetIfInWorkspace(sheetInfo, workspace)
 			if sheet is not None:
 				self.addRow(sheet, rowDictionary, rowNumber)
-
-			# temp
-			break
 
 	def expandAllRows(self, sheet, isExpanded=True):
 		# operate only on rows referenced to be parent rows
@@ -152,9 +142,6 @@ class SmartsheetService(object):
 			if sheet is not None:
 				self.expandAllRows(sheet, isExpanded)
 
-			# temp
-			break
-
 	def getSheetInfos(self, workspace=None):
 		# Smartsheet Python SDK cannot filter by workspace
 		return self.__smartsheetClient.fetchSheetList()
@@ -169,9 +156,10 @@ class SmartsheetService(object):
 		disable workspace checking and always return the associated Sheet.
 		"""
 		sheet = sheetInfo.loadSheet()
-		sheetWorkspace = sheet.workspace["name"]
-		isSheetInWorkspace = not workspace or sheetWorkspace == workspace
-		if (not isSheetInWorkspace):
-			self.__logger.debug('sheet %s workspace "%s" != "%s"' % (sheetInfo, sheetWorkspace, workspace))
+		if (sheet):
+			sheetWorkspace = sheet.workspace["name"]
+			isSheetInWorkspace = not workspace or sheetWorkspace == workspace
+			if (not isSheetInWorkspace):
+				self.__logger.debug('sheet %s workspace "%s" != "%s"' % (sheetInfo, sheetWorkspace, workspace))
 		return sheet
 

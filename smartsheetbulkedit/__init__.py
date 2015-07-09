@@ -1,2 +1,4 @@
-from smartsheet.columntypes import ColumnTypes
 from error.smartsheetbulkediterror import SmartsheetBulkEditError
+from smartsheet.columntype import ColumnType
+from smartsheet.systemcolumntype import SystemColumnType
+
