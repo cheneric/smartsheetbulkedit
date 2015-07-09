@@ -24,4 +24,6 @@ if __name__ == "__main__":
 #	smartsheetService.addColumnInAllSheets("foo title3", type=ColumnTypes.Date, index=0)
 #	smartsheetService.updateColumnInAllSheets("yello belly", workspace="ERIC CHEN - API SANDBOX", type=ColumnTypes.PickList, options=("one", "two", "three"))
 
-	smartsheetService.updateCellInAllSheets(2, columnIndex=7, columnTitle="*Task Name", value="pewter dragon")
+#	smartsheetService.updateCellInAllSheets(2, columnIndex=7, columnTitle="*Task Name", value="pewter dragon")
+
+	smartsheetService.expandAllRowsInAllSheets(isExpanded=False)

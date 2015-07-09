@@ -137,6 +137,21 @@ class SmartsheetService(object):
 			# temp
 			break
 
+	def expandAllRows(self, sheet, isExpanded=True):
+		for row in sheet.rows:
+			if row.expanded != isExpanded:
+				row.expanded = isExpanded
+				row.save(cell=[])
+
+	def expandAllRowsInAllSheets(self, workspace=None, isExpanded=True):
+		for sheetInfo in self.getSheetInfos(workspace):
+			sheet = self.__getSheetIfInWorkspace(sheetInfo, workspace)
+			if sheet is not None:
+				self.expandAllRows(sheet, isExpanded)
+
+			# temp
+			break
+
 	def getSheetInfos(self, workspace=None):
 		# Smartsheet Python SDK cannot filter by workspace
 		return self.__smartsheetClient.fetchSheetList()
