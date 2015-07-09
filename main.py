@@ -20,6 +20,8 @@ if __name__ == "__main__":
 #	now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
 #	smartsheetService.addRowInAllSheets({"*Task Name":"my task name3", "*Data or Comment":"foobar", "*Date":now, "*Status":"Not Started"}, workspace="ERIC CHEN - API SANDBOX", rowNumber=0)
 
-	from smartsheetbulkedit import ColumnTypes
+#	from smartsheetbulkedit import ColumnTypes
 #	smartsheetService.addColumnInAllSheets("foo title3", type=ColumnTypes.Date, index=0)
-	smartsheetService.updateColumnInAllSheets("yello belly", workspace="ERIC CHEN - API SANDBOX", type=ColumnTypes.PickList, options=("one", "two", "three"))
+#	smartsheetService.updateColumnInAllSheets("yello belly", workspace="ERIC CHEN - API SANDBOX", type=ColumnTypes.PickList, options=("one", "two", "three"))
+
+	smartsheetService.updateCellInAllSheets(2, columnIndex=7, columnTitle="*Task Name", value="pewter dragon")

@@ -4,6 +4,8 @@ from smartsheetclient import Column
 from smartsheetclient import RowPositionProperties
 from smartsheetclient import SmartsheetClient
 
+from smartsheetbulkedit import SmartsheetBulkEditError
+
 class SmartsheetService(object):
 	__logger = logging.getLogger(__name__)
 
@@ -47,6 +49,26 @@ class SmartsheetService(object):
 					systemColumnType=systemColumnType, 
 					autoNumberFormat=autoNumberFormat, 
 					width=width)
+
+			# temp
+			break
+
+	def updateCell(self, sheet, rowNumber, columnIndex=None, columnTitle=None, value=None):
+		if columnIndex is not None and columnTitle is not None:
+			raise SmartsheetBulkEditError('one but not both "columnIndex" and "columnTitle" must be specified')
+		elif columnTitle is not None:
+			columnIndex = sheet.getColumnsInfo().getColumnByTitle(columnTitle).index
+		elif columnIndex is None:
+			raise SmartsheetBulkEditError('either "columnIndex" or "columnTitle" must be specified')
+		row = sheet[rowNumber]
+		row[columnIndex] = value
+		row.getCellByIndex(columnIndex).save(propagate=False)
+
+	def updateCellInAllSheets(self, rowNumber, workspace=None, columnIndex=None, columnTitle=None, value=None):
+		for sheetInfo in self.getSheetInfos(workspace):
+			sheet = self.__getSheetIfInWorkspace(sheetInfo, workspace)
+			if sheet is not None:
+				self.updateCell(sheet, rowNumber, columnIndex=columnIndex, columnTitle=columnTitle, value=value)
 
 			# temp
 			break
