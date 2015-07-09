@@ -18,8 +18,8 @@ if __name__ == "__main__":
 
 #	from datetime import datetime
 #	now = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
-#	smartsheetService.addRowToAllSheets({"*Task Name":"my task name3", "*Data or Comment":"foobar", "*Date":now, "*Status":"Not Started"}, workspace="ERIC CHEN - API SANDBOX", rowNumber=0)
+#	smartsheetService.addRowInAllSheets({"*Task Name":"my task name3", "*Data or Comment":"foobar", "*Date":now, "*Status":"Not Started"}, workspace="ERIC CHEN - API SANDBOX", rowNumber=0)
 
 	from smartsheetbulkedit import ColumnTypes
-	smartsheetService.addColumnToAllSheets("foo title2", type=ColumnTypes.Date, index=0)
-
+#	smartsheetService.addColumnInAllSheets("foo title3", type=ColumnTypes.Date, index=0)
+	smartsheetService.updateColumnInAllSheets("yello belly", workspace="ERIC CHEN - API SANDBOX", type=ColumnTypes.PickList, options=("one", "two", "three"))

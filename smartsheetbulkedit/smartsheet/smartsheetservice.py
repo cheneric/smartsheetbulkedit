@@ -32,9 +32,9 @@ class SmartsheetService(object):
 		column = Column(title, **params)
 		sheet.insertColumn(column, column.index)
 
-	def addColumnToAllSheets(self, title, workspace=None, index=None, type=None, options=None, symbol=None, isPrimary=None, systemColumnType=None, autoNumberFormat=None, width=None):
+	def addColumnInAllSheets(self, title, workspace=None, index=None, type=None, options=None, symbol=None, isPrimary=None, systemColumnType=None, autoNumberFormat=None, width=None):
 		for sheetInfo in self.getSheetInfos(workspace):
-			sheet = self.__getSheetInWorkspace(sheetInfo, workspace)
+			sheet = self.__getSheetIfInWorkspace(sheetInfo, workspace)
 			if sheet is not None:
 				self.addColumn(
 					sheet, 
@@ -47,6 +47,48 @@ class SmartsheetService(object):
 					systemColumnType=systemColumnType, 
 					autoNumberFormat=autoNumberFormat, 
 					width=width)
+
+			# temp
+			break
+
+	def updateColumn(self, sheet, oldTitle, newTitle=None, index=None, type=None, options=None, symbol=None, systemColumnType=None, autoNumberFormat=None, width=None, format=None):
+		column = sheet.getColumnsInfo().getColumnByTitle(oldTitle)
+		if newTitle is not None:
+			column.title = newTitle
+		if index is not None:
+			column.index = index
+		if type is not None:
+			column.type = type
+		if options is not None:
+			column.options = options
+		if symbol is not None:
+			column.symbol = symbol
+		if systemColumnType is not None:
+			column.systemColumnType = systemColumnType
+		if autoNumberFormat is not None:
+			column.autoNumberFormat = autoNumberFormat
+		if width is not None:
+			column.width = width
+		if format is not None:
+			column.format = format
+		column.update()
+
+	def updateColumnInAllSheets(self, oldTitle, workspace=None, newTitle=None, index=None, type=None, options=None, symbol=None, systemColumnType=None, autoNumberFormat=None, width=None, format=None):
+		for sheetInfo in self.getSheetInfos(workspace):
+			sheet = self.__getSheetIfInWorkspace(sheetInfo, workspace)
+			if sheet is not None:
+				self.updateColumn(
+					sheet, 
+					oldTitle, 
+					newTitle=newTitle, 
+					index=index, 
+					type=type, 
+					options=options, 
+					symbol=symbol, 
+					systemColumnType=systemColumnType, 
+					autoNumberFormat=autoNumberFormat, 
+					width=width, 
+					format=format)
 
 			# temp
 			break
@@ -64,11 +106,11 @@ class SmartsheetService(object):
 			siblingId = sheet.getRowByRowNumber(rowNumber - 1)
 			sheet.addRow(row, siblingId=siblingId)
 
-	def addRowToAllSheets(self, rowDictionary, workspace=None, rowNumber=None):
+	def addRowInAllSheets(self, rowDictionary, workspace=None, rowNumber=None):
 		for sheetInfo in self.getSheetInfos(workspace):
-			sheet = self.__getSheetInWorkspace(sheetInfo, workspace)
+			sheet = self.__getSheetIfInWorkspace(sheetInfo, workspace)
 			if sheet is not None:
-				self.addRow(sheetInfo.loadSheet(), rowDictionary, rowNumber)
+				self.addRow(sheet, rowDictionary, rowNumber)
 
 			# temp
 			break
@@ -77,7 +119,7 @@ class SmartsheetService(object):
 		# Smartsheet Python SDK cannot filter by workspace
 		return self.__smartsheetClient.fetchSheetList()
 
-	def __getSheetInWorkspace(self, sheetInfo, workspace):
+	def __getSheetIfInWorkspace(self, sheetInfo, workspace):
 		""" Returns a Sheet if it belongs to the specified workspace
 		or if workspace == None.  Returns None if the sheet does not 
 		belong to the workspace.
